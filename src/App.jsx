@@ -8,7 +8,7 @@ const cards = [
     text: "Cause she in Saree is all the fireworks I ever need",
     emoji: "🎆",
     emojiClass: "fireworks",
-    laneEmoji: "🎆",
+    category: "fireworks",
   },
   {
     id: "card2",
@@ -16,7 +16,7 @@ const cards = [
     text: "Cause she always blows my hosh away",
     emoji: "🤯",
     emojiClass: "wow",
-    laneEmoji: "🤯",
+    category: "wow",
   },
   {
     id: "card3",
@@ -24,7 +24,7 @@ const cards = [
     text: "Cause she is the most beautiful thing I could watch forever",
     emoji: "👀",
     emojiClass: "eyes",
-    laneEmoji: "👀",
+    category: "eyes",
   },
 ];
 
@@ -97,7 +97,7 @@ function ScratchCard({ card, onReveal }) {
         }
       }
       const ratio = total ? cleared / total : 0;
-      if (ratio > 0.4) {
+      if (ratio > 0.65) {
         doReveal();
       }
     }
@@ -168,13 +168,15 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
   const boardRef = useRef(null);
   const heroRef = useRef(null);
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(10);
+  const [lives, setLives] = useState(20);
   const [targetIndex, setTargetIndex] = useState(() => Math.floor(Math.random() * cards.length));
   const [gameOver, setGameOver] = useState(false);
   const livesRef = useRef(lives);
   useEffect(() => { livesRef.current = lives; }, [lives]);
   const selectedIndexRef = useRef(selectedIndex);
   useEffect(() => { selectedIndexRef.current = selectedIndex; }, [selectedIndex]);
+  const targetIndexRef = useRef(targetIndex);
+  useEffect(() => { targetIndexRef.current = targetIndex; }, [targetIndex]);
   const [showFlash, setShowFlash] = useState(false);
 
   useEffect(() => {
@@ -238,21 +240,25 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
     window.addEventListener("touchend", heroEnd);
 
     const enemies = [];
-    const enemySpeed = 0.7;
+    const enemySpeed = 0.85;
 
     function spawnEnemy() {
       const enemy = document.createElement("div");
       enemy.className = "enemy";
       const lane = Math.floor(Math.random() * lanes);
-      // drop random collectible emojis
-      const types = ["🎆", "🤯", "👀"];
-      const emoji = types[Math.floor(Math.random() * types.length)];
-      enemy.textContent = emoji;
+      // drop random collectible emojis with category
+      const types = [
+        { emoji: "🎆", category: "fireworks" },
+        { emoji: "🤯", category: "wow" },
+        { emoji: "👀", category: "eyes" }
+      ];
+      const type = types[Math.floor(Math.random() * types.length)];
+      enemy.textContent = type.emoji;
       const x = laneWidth * (lane + 0.5) - 21;
       enemy.style.left = x + "px";
       enemy.style.top = "-40px";
       board.appendChild(enemy);
-      enemies.push({ el: enemy, lane, emoji, y: -40 });
+      enemies.push({ el: enemy, lane, category: type.category, y: -40 });
     }
 
     let lastSpawn = performance.now();
@@ -290,11 +296,11 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
         const horizontalOverlap = enemyRect.left < heroRect.right && enemyRect.right > heroRect.left;
         
         if (collidingFromAbove && horizontalOverlap) {
-          const heroEmoji = (cards[selectedIndexRef.current] ?? cards[0]).laneEmoji;
-          const targetEmoji = (cards[targetIndex] ?? cards[0]).laneEmoji;
+          const heroCategory = (cards[selectedIndexRef.current] ?? cards[0]).category;
+          const targetCategory = (cards[targetIndexRef.current] ?? cards[0]).category;
           
-          // Case 1: Correct character + correct emoji = +1 score
-          if (heroEmoji === targetEmoji && e.emoji === targetEmoji) {
+          // Case 1: Correct character catching its matching emoji when it's the target = +1 score
+          if (heroCategory === targetCategory && e.category === targetCategory) {
             e.el.classList.add("pop");
             setScore((s) => s + 1);
             setTimeout(() => {
@@ -304,8 +310,7 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
             return;
           }
           
-          // Case 2: Wrong character touching target emoji = -1 life
-          // Case 3: Any character touching wrong emoji = -1 life
+          // Case 2 & 3: Any other collision = -1 life
           if (e.el.parentNode) e.el.parentNode.removeChild(e.el);
           enemies.splice(index, 1);
           setLives((current) => (current > 0 ? current - 1 : 0));
@@ -368,18 +373,18 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
     if (img) img.src = (cards[selectedIndex] ?? cards[0]).img;
   }, [selectedIndex]);
 
-  // notify parent when target changes
+  // notify parent when target changes (including initial value)
   useEffect(() => {
     if (onTargetChange) onTargetChange(targetIndex);
     // show flash on board briefly when target changes
     setShowFlash(true);
     const t = setTimeout(() => setShowFlash(false), 1200);
     return () => clearTimeout(t);
-  }, [targetIndex, onTargetChange]);
+  }, [targetIndex]);
 
   function restart() {
     setScore(0);
-    setLives(10);
+    setLives(20);
     setGameOver(false);
   }
 
@@ -403,7 +408,7 @@ function EmojiGame({ selectedIndex, onTargetChange, onGameOver }) {
             <div className="game-over-card">
               <div className="game-over-title">game over</div>
               <button className="btn btn-secondary" type="button" onClick={restart}>
-                restart with 10 lives
+                restart with 20 lives
               </button>
             </div>
           </div>
