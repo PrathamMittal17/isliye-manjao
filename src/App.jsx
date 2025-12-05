@@ -4,7 +4,7 @@ import "./style.css";
 const cards = [
   {
     id: "card1",
-    img: "/saree.jpeg",
+    img: "/isliye-manjao/saree.jpeg",
     text: "Cause she in Saree is all the fireworks I ever need",
     emoji: "🎆",
     emojiClass: "fireworks",
@@ -12,7 +12,7 @@ const cards = [
   },
   {
     id: "card2",
-    img: "/wow.jpeg",
+    img: "/isliye-manjao/wow.jpeg",
     text: "Cause she always blows my hosh away",
     emoji: "🤯",
     emojiClass: "wow",
@@ -20,7 +20,7 @@ const cards = [
   },
   {
     id: "card3",
-    img: "/eyes.jpg",
+    img: "/isliye-manjao/eyes.jpg",
     text: "Cause she is the most beautiful thing I could watch forever",
     emoji: "👀",
     emojiClass: "eyes",
